@@ -31,7 +31,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url('D:/Chayil/chayilfrontend/public/images/background2.jpg')` }}>
+    <div className="min-h-screen bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url('${import.meta.env.BASE_URL}images/background5.jpg')` }}>
       <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <motion.div
@@ -97,12 +97,7 @@ export default function ForgotPassword() {
                 </div>
 
                 <div className="text-center">
-                  <Link
-                    to="/login"
-                    className="text-teal-400 hover:text-cyan-300 text-sm transition-colors duration-200"
-                  >
-                    Back to Login
-                  </Link>
+                  <span className="text-gray-400 text-sm">If you remember your password, return to the main site.</span>
                 </div>
               </form>
             ) : (
@@ -134,12 +129,7 @@ export default function ForgotPassword() {
                   </button>
                 </div>
                 <div className="pt-4">
-                  <Link
-                    to="/login"
-                    className="text-teal-400 hover:text-cyan-300 text-sm transition-colors duration-200"
-                  >
-                    Back to Login
-                  </Link>
+                  <span className="text-gray-400 text-sm">Return to the main site when ready.</span>
                 </div>
               </motion.div>
             )}

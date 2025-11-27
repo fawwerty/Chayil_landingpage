@@ -16,8 +16,6 @@ export default function Header() {
     { name: 'Customer Service', path: '/customer-service' },
     { name: 'Blog', path: '/blog' },
     { name: 'Contact', path: '/contact' },
-    { name: 'Login', path: '/login' },
-    { name: 'Signup', path: '/signup' },
   ]
 
   return (

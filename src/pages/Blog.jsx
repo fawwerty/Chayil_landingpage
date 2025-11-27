@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
 import { useTheme } from '../context/ThemeContext'
+import { useEffect, useState } from 'react'
 
-const blogPosts = [
+const staticPosts = [
   {
     title: 'The Future of Cybersecurity in Africa',
     excerpt: 'Exploring emerging trends and challenges in African cybersecurity landscape.',
@@ -39,6 +40,64 @@ const blogPosts = [
 
 export default function Blog() {
   const { isDark } = useTheme()
+  const [posts, setPosts] = useState(staticPosts)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  // Fetch posts from the serverless API
+  async function loadFeedsFromAPI() {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch('/api/feeds', {
+        headers: { 'Accept': 'application/json' }
+      })
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      if (data.success && data.feeds && data.feeds.length > 0) {
+        setPosts(data.feeds.slice(0, 20))
+      } else {
+        // Fallback to static posts if API has no feeds
+        setPosts(staticPosts)
+      }
+    } catch (err) {
+      console.warn('Feed API not available, using static posts:', err.message)
+      setError(err.message)
+      setPosts(staticPosts)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    let mounted = true
+    let pollInterval = null
+
+    async function init() {
+      if (mounted) {
+        await loadFeedsFromAPI()
+        
+        // Poll for updates every 10 minutes
+        pollInterval = setInterval(() => {
+          if (mounted) {
+            loadFeedsFromAPI()
+          }
+        }, 10 * 60 * 1000)
+      }
+    }
+
+    init()
+
+    return () => {
+      mounted = false
+      if (pollInterval) clearInterval(pollInterval)
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url('${import.meta.env.BASE_URL}images/background5.jpg')` }}>
@@ -51,22 +110,16 @@ export default function Blog() {
         <h1 className="text-4xl font-bold mb-4 text-white">Blog</h1>
         <p className="text-gray-300 mb-6 max-w-4xl mx-auto">
           Insights and updates from the world of GRC and cybersecurity.
+          {loading && <span className="ml-2 text-teal-400 text-sm">(Updating...)</span>}
+          {error && <span className="ml-2 text-amber-400 text-sm">(Using cached posts)</span>}
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {blogPosts.map((post, i) => (
-            <motion.div key={i} whileHover={{ y: -6 }} className="bg-gray-900 text-gray-300 p-6 rounded-lg shadow-lg border border-teal-500/20 cursor-pointer hover:border-teal-400/60 hover:shadow-teal-500/20 transition" onClick={() => window.open(post.socialLink, '_blank')}>
+          {posts.map((post, i) => (
+            <motion.div key={i} whileHover={{ y: -6 }} className="bg-gray-900 text-gray-300 p-6 rounded-lg shadow-lg border border-teal-500/20 cursor-pointer hover:border-teal-400/60 hover:shadow-teal-500/20 transition" onClick={() => window.open(post.link || post.socialLink || '#', '_blank')}>
               <h3 className="font-semibold text-lg mb-2 text-teal-400">{post.title}</h3>
               <p className="text-gray-400 text-sm mb-4">{post.excerpt}</p>
               <div className="text-xs text-gray-500 mb-4">
-                {post.date} • {post.readTime}
-              </div>
-              <div className="border-t border-gray-700 pt-4">
-                <h4 className="font-semibold text-sm mb-2 text-cyan-300">Recent Comments:</h4>
-                {post.comments.map((comment, j) => (
-                  <div key={j} className="text-xs text-gray-400 mb-1">
-                    <span className="font-medium text-teal-400">{comment.user}:</span> {comment.comment}
-                  </div>
-                ))}
+                {post.date}
               </div>
             </motion.div>
           ))}

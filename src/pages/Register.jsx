@@ -53,9 +53,9 @@ export default function Register() {
       });
 
       if (result.success) {
-        navigate('/login', {
+        navigate('/', {
           state: {
-            message: 'Registration successful! Please log in with your credentials.'
+            message: 'Registration successful!'
           }
         });
       } else {
@@ -230,15 +230,7 @@ export default function Register() {
               </div>
 
               <div className="text-center">
-                <span className="text-gray-400 text-sm">
-                  Already have an account?{' '}
-                  <Link
-                    to="/login"
-                    className="text-teal-400 hover:text-cyan-300 transition-colors duration-200"
-                  >
-                    Sign in
-                  </Link>
-                </span>
+                <span className="text-gray-400 text-sm">Already have an account? Return to the main site.</span>
               </div>
             </form>
           </motion.div>

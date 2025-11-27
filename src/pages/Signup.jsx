@@ -29,7 +29,7 @@ export default function Signup() {
     setLoading(false);
 
     if (result.success) {
-      navigate('/login');
+      navigate('/');
     } else {
       setError(result.error || 'Signup failed');
     }
@@ -125,7 +125,7 @@ export default function Signup() {
             </button>
           </div>
           <p className="text-sm text-gray-400 mt-4">
-            Already have an account? <Link to="/login" className="text-teal-400 hover:text-cyan-300">Login</Link>
+            Already have an account? Please return to the main site.
           </p>
         </div>
       </div>

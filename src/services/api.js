@@ -1,5 +1,6 @@
-// API service layer for backend-ready frontend
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001/api";
+// Updated API endpoints with "api" prefix to match backend Laravel routes
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 class ApiService {
   constructor() {
@@ -74,7 +75,7 @@ class ApiService {
     const { email, password } = credentials;
     const payload = { email, password };
 
-    const response = await this.request("/auth/login", {
+    const response = await this.request("/api/auth/login", {
       method: "POST",
       body: JSON.stringify(payload),
     });
@@ -84,7 +85,7 @@ class ApiService {
 
   async register(userData) {
     // Forward registration to backend
-    const response = await this.request("/auth/register", {
+    const response = await this.request("/api/auth/register", {
       method: "POST",
       body: JSON.stringify(userData),
     });
@@ -93,7 +94,7 @@ class ApiService {
 
   async forgotPassword(email) {
     // Trigger forgot-password on backend
-    const response = await this.request("/auth/forgot-password", {
+    const response = await this.request("/api/auth/forgot-password", {
       method: "POST",
       body: JSON.stringify({ email }),
     });
@@ -113,7 +114,7 @@ class ApiService {
     }
 
     // Verify 2FA code with backend (controller expects token + email)
-    const response = await this.request("/auth/verify2fa", {
+    const response = await this.request("/api/auth/verify2fa", {
       method: "POST",
       body: JSON.stringify(bodyPayload),
     });
@@ -122,7 +123,7 @@ class ApiService {
 
   async refreshToken() {
     // Refresh token using a raw fetch to avoid recursion with request()
-    const url = `${this.baseURL}/auth/refresh`;
+    const url = `${this.baseURL}/api/auth/refresh`;
     try {
       // Include the current token in the request body so backend can refresh it
       const current = this.getAuthToken();
@@ -150,7 +151,7 @@ class ApiService {
   // Social / Google auth
   async googleLogin({ token }) {
     // Send Google access token to backend to verify and create/login user
-    const response = await this.request("/auth/google-login", {
+    const response = await this.request("/api/auth/google-login", {
       method: "POST",
       body: JSON.stringify({ token }),
     });
@@ -158,7 +159,7 @@ class ApiService {
   }
 
   async googleSignup({ token }) {
-    const response = await this.request("/auth/google-signup", {
+    const response = await this.request("/api/auth/google-signup", {
       method: "POST",
       body: JSON.stringify({ token }),
     });
@@ -167,52 +168,52 @@ class ApiService {
 
   // Admin endpoints
   async getAdminSummary() {
-    return this.request("/admin/summary");
+    return this.request("/api/admin/summary");
   }
 
   async getClientSummary() {
-    return this.request("/client/summary");
+    return this.request("/api/client/summary");
   }
 
   async getClients(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/admin/clients?${queryString}`);
+    return this.request(`/api/admin/clients?${queryString}`);
   }
 
   async createClient(clientData) {
-    return this.request("/admin/clients", {
+    return this.request("/api/admin/clients", {
       method: "POST",
       body: JSON.stringify(clientData),
     });
   }
 
   async updateClient(clientId, clientData) {
-    return this.request(`/admin/clients/${clientId}`, {
+    return this.request(`/api/admin/clients/${clientId}`, {
       method: "PATCH",
       body: JSON.stringify(clientData),
     });
   }
 
   async deleteClient(clientId) {
-    return this.request(`/admin/clients/${clientId}`, {
+    return this.request(`/api/admin/clients/${clientId}`, {
       method: "DELETE",
     });
   }
 
   async getIncidents(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/incidents?${queryString}`);
+    return this.request(`/api/incidents?${queryString}`);
   }
 
   async createIncident(incidentData) {
-    return this.request("/incidents", {
+    return this.request("/api/incidents", {
       method: "POST",
       body: JSON.stringify(incidentData),
     });
   }
 
   async updateIncident(incidentId, incidentData) {
-    return this.request(`/incidents/${incidentId}`, {
+    return this.request(`/api/incidents/${incidentId}`, {
       method: "PATCH",
       body: JSON.stringify(incidentData),
     });
@@ -220,33 +221,33 @@ class ApiService {
 
   async getReports(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/reports?${queryString}`);
+    return this.request(`/api/reports?${queryString}`);
   }
 
   async exportReport(reportData) {
-    return this.request("/reports/export", {
+    return this.request("/api/reports/export", {
       method: "POST",
       body: JSON.stringify(reportData),
     });
   }
 
   async getTeam() {
-    return this.request("/admin/users");
+    return this.request("/api/admin/users");
   }
 
   async updateUserRole(userId, roleData) {
-    return this.request(`/admin/roles/${userId}`, {
+    return this.request(`/api/admin/roles/${userId}`, {
       method: "PATCH",
       body: JSON.stringify(roleData),
     });
   }
 
   async getSettings() {
-    return this.request("/settings");
+    return this.request("/api/settings");
   }
 
   async updateSettings(settingsData) {
-    return this.request("/settings", {
+    return this.request("/api/settings", {
       method: "PATCH",
       body: JSON.stringify(settingsData),
     });
@@ -254,71 +255,71 @@ class ApiService {
 
   // Client endpoints
   async getClientDashboard() {
-    return this.request("/client/dashboard");
+    return this.request("/api/client/dashboard");
   }
 
   async getClientIncidents() {
-    return this.request("/client/incidents");
+    return this.request("/api/client/incidents");
   }
 
   async reportIncident(incidentData) {
-    return this.request("/client/incidents/report", {
+    return this.request("/api/client/incidents/report", {
       method: "POST",
       body: JSON.stringify(incidentData),
     });
   }
 
   async getClientReports() {
-    return this.request("/client/reports");
+    return this.request("/api/client/reports");
   }
 
   async getCompliance() {
-    return this.request("/compliance");
+    return this.request("/api/compliance");
   }
 
   async updateCompliance(complianceData) {
-    return this.request("/compliance", {
+    return this.request("/api/compliance", {
       method: "PATCH",
       body: JSON.stringify(complianceData),
     });
   }
 
   async getTrainingModules() {
-    return this.request("/training/modules");
+    return this.request("/api/training/modules");
   }
 
   async getTrainingProgress() {
-    return this.request("/training/progress");
+    return this.request("/api/training/progress");
   }
 
   async updateTrainingProgress(progressData) {
-    return this.request("/training/progress", {
+    return this.request("/api/training/progress", {
       method: "POST",
       body: JSON.stringify(progressData),
     });
   }
 
   async getMessages() {
-    return this.request("/messages");
+    return this.request("/api/messages");
   }
 
   async sendMessage(messageData) {
-    return this.request("/messages", {
+    return this.request("/api/messages", {
       method: "POST",
       body: JSON.stringify(messageData),
     });
   }
 
   async getBilling() {
-    return this.request("/billing");
+    return this.request("/api/billing");
   }
 
   async getAccount() {
-    return this.request("/account");
+    return this.request("/api/account");
   }
 
   async updateAccount(accountData) {
-    return this.request("/account", {
+    return this.request("/api/account", {
       method: "PATCH",
       body: JSON.stringify(accountData),
     });

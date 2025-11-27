@@ -5,9 +5,7 @@ const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };
 
@@ -17,48 +15,39 @@ export const AuthProvider = ({ children }) => {
   const [requires2FA, setRequires2FA] = useState(false);
   const [pending2FAEmail, setPending2FAEmail] = useState(null);
 
-  // Helper function to wait until google is loaded via load/error event flags
-  const waitForGoogle = () => {
-    return new Promise((resolve, reject) => {
-      const timeout = 15000; // 15 seconds timeout
-      const intervalTime = 100;
-      let elapsedTime = 0;
+  // Wait until Google API loads
+  const waitForGoogle = () => new Promise((resolve, reject) => {
+    const timeout = 15000, intervalTime = 100;
+    let elapsedTime = 0;
 
-      if (window.googleApiLoaded) {
-        resolve();
-        return;
-      }
+    if (window.googleApiLoaded) return resolve();
+    if (window.googleApiLoadFailed) return reject(new Error('Google API failed to load'));
 
-      if (window.googleApiLoadFailed) {
-        reject(new Error('Google API failed to load'));
-        return;
-      }
-
-      const interval = setInterval(() => {
-        if (window.googleApiLoaded) {
-          clearInterval(interval);
-          resolve();
-        } else if (window.googleApiLoadFailed) {
-          clearInterval(interval);
-          reject(new Error('Google API failed to load'));
-        } else {
-          elapsedTime += intervalTime;
-          if (elapsedTime >= timeout) {
-            clearInterval(interval);
-            reject(new Error('Google API load timed out'));
-          }
-        }
-      }, intervalTime);
-    });
-  };
+    const interval = setInterval(() => {
+      if (window.googleApiLoaded) { clearInterval(interval); resolve(); }
+      else if (window.googleApiLoadFailed) { clearInterval(interval); reject(new Error('Google API failed to load')); }
+      else { elapsedTime += intervalTime; if (elapsedTime >= timeout) { clearInterval(interval); reject(new Error('Google API load timed out')); } }
+    }, intervalTime);
+  });
 
   useEffect(() => {
-    // Check for stored auth on mount
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("authToken");
+    const storedRedirect = localStorage.getItem("userRedirect");
 
     if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
+      const userData = JSON.parse(storedUser);
+      // Set role based on stored redirect if not already set
+      if (storedRedirect && !userData.role) {
+        if (storedRedirect.includes('/admin')) {
+          userData.role = 'admin';
+        } else if (storedRedirect.includes('/client')) {
+          userData.role = 'client';
+        }
+        // Update localStorage with the corrected user data
+        localStorage.setItem("user", JSON.stringify(userData));
+      }
+      setUser(userData);
       apiService.setAuthToken(storedToken);
     }
     setLoading(false);
@@ -69,37 +58,45 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       const response = await apiService.login({ email, password });
 
-      // Handle common response shapes from backend
       if (response?.requires2FA) {
         setRequires2FA(true);
         setPending2FAEmail(email);
         return { success: true, requires2FA: true };
       }
 
-      // normalize token and user
       const token = response?.token || response?.access_token || response?.data?.token || response?.data?.access_token;
       const userData = response?.user || response?.data?.user || response?.data?.userData || response?.data;
+      const redirect = response?.redirect || response?.data?.redirect;
+
+      // Set role based on redirect URL
+      if (userData && redirect) {
+        if (redirect.includes('/admin')) {
+          userData.role = 'admin';
+        } else if (redirect.includes('/client')) {
+          userData.role = 'client';
+        }
+      }
 
       if (token && userData) {
         setUser(userData);
         apiService.setAuthToken(token);
         localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("authToken", token);
-        return { success: true, user: userData };
+        if (redirect) {
+          localStorage.setItem("userRedirect", redirect);
+        }
+        return { success: true, user: userData, redirect };
       }
 
       return { success: false, error: "Invalid response from server" };
     } catch (error) {
       return { success: false, error: error.message };
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const verify2FA = async (code) => {
     try {
       setLoading(true);
-      // send both email and token as backend expects
       const payload = { token: code, email: pending2FAEmail };
       const response = await apiService.verify2FA(payload);
 
@@ -111,19 +108,14 @@ export const AuthProvider = ({ children }) => {
         setRequires2FA(false);
         setPending2FAEmail(null);
         apiService.setAuthToken(token);
-
         localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("authToken", token);
-
         return { success: true, user: userData };
       }
 
       return { success: false, error: "Invalid 2FA code" };
-    } catch (error) {
-      return { success: false, error: error.message };
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { return { success: false, error: error.message }; }
+    finally { setLoading(false); }
   };
 
   const logout = () => {
@@ -140,9 +132,9 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       const response = await apiService.register(userData);
 
-      // normalize possible response
       const token = response?.token || response?.access_token || response?.data?.token;
       const user = response?.user || response?.data?.user || response?.data;
+
       if (token && user) {
         setUser(user);
         apiService.setAuthToken(token);
@@ -151,12 +143,9 @@ export const AuthProvider = ({ children }) => {
         return { success: true, user };
       }
 
-      return { success: true, data: response };
-    } catch (error) {
-      return { success: false, error: error.message };
-    } finally {
-      setLoading(false);
-    }
+      return { success: false, error: "Invalid response from server" };
+    } catch (error) { return { success: false, error: error.message }; }
+    finally { setLoading(false); }
   };
 
   const forgotPassword = async (email) => {
@@ -164,11 +153,8 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       await apiService.forgotPassword(email);
       return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { return { success: false, error: error.message }; }
+    finally { setLoading(false); }
   };
 
   const refreshToken = async () => {
@@ -181,7 +167,7 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: false };
     } catch (error) {
-      logout(); // Token refresh failed, logout user
+      logout();
       return { success: false };
     }
   };
@@ -190,82 +176,64 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       await waitForGoogle();
-
-      return new Promise((resolve, reject) => {
-        const client = google.accounts.oauth2.initTokenClient({
+      return new Promise((resolve) => {
+        google.accounts.id.initialize({
           client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-          scope: 'openid email profile',
-          callback: async (response) => {
-            if (response.access_token) {
-              try {
-                const apiResponse = await apiService.googleLogin({ token: response.access_token });
-                const token = apiResponse?.token || apiResponse?.access_token || apiResponse?.data?.token;
-                const userData = apiResponse?.user || apiResponse?.data?.user || apiResponse?.data;
-                if (token && userData) {
-                  setUser(userData);
-                  apiService.setAuthToken(token);
-                  localStorage.setItem('user', JSON.stringify(userData));
-                  localStorage.setItem('authToken', token);
-                  resolve({ success: true, user: userData });
-                  return;
-                }
-                resolve({ success: false, error: 'Google login failed' });
-              } catch (error) {
-                resolve({ success: false, error: error.message });
-              }
-            } else {
-              resolve({ success: false, error: 'Google login failed' });
-            }
+          callback: async (credentialResponse) => {
+            const idToken = credentialResponse.credential;
+            if (!idToken) return resolve({ success: false, error: 'Google login failed' });
+
+            try {
+              const apiResponse = await apiService.googleLogin({ token: idToken });
+              const token = apiResponse?.token || apiResponse?.access_token || apiResponse?.data?.token;
+              const userData = apiResponse?.user || apiResponse?.data?.user || apiResponse?.data;
+
+              if (token && userData) {
+                setUser(userData);
+                apiService.setAuthToken(token);
+                localStorage.setItem('user', JSON.stringify(userData));
+                localStorage.setItem('authToken', token);
+                resolve({ success: true, user: userData });
+              } else resolve({ success: false, error: 'Google login failed' });
+            } catch (error) { resolve({ success: false, error: error.message }); }
           },
         });
-        client.requestAccessToken();
+        google.accounts.id.prompt();
       });
-    } catch (error) {
-      return { success: false, error: error.message };
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { return { success: false, error: error.message }; }
+    finally { setLoading(false); }
   };
 
   const googleSignup = async () => {
     setLoading(true);
     try {
       await waitForGoogle();
-
-      return new Promise((resolve, reject) => {
-        const client = google.accounts.oauth2.initTokenClient({
+      return new Promise((resolve) => {
+        google.accounts.id.initialize({
           client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-          scope: 'openid email profile',
-          callback: async (response) => {
-            if (response.access_token) {
-              try {
-                const apiResponse = await apiService.googleSignup({ token: response.access_token });
-                const token = apiResponse?.token || apiResponse?.access_token || apiResponse?.data?.token;
-                const userData = apiResponse?.user || apiResponse?.data?.user || apiResponse?.data;
-                if (token && userData) {
-                  setUser(userData);
-                  apiService.setAuthToken(token);
-                  localStorage.setItem('user', JSON.stringify(userData));
-                  localStorage.setItem('authToken', token);
-                  resolve({ success: true, user: userData });
-                  return;
-                }
-                resolve({ success: false, error: 'Google signup failed' });
-              } catch (error) {
-                resolve({ success: false, error: error.message });
-              }
-            } else {
-              resolve({ success: false, error: 'Google signup failed' });
-            }
+          callback: async (credentialResponse) => {
+            const idToken = credentialResponse.credential;
+            if (!idToken) return resolve({ success: false, error: 'Google signup failed' });
+
+            try {
+              const apiResponse = await apiService.googleSignup({ token: idToken });
+              const token = apiResponse?.token || apiResponse?.access_token || apiResponse?.data?.token;
+              const userData = apiResponse?.user || apiResponse?.data?.user || apiResponse?.data;
+
+              if (token && userData) {
+                setUser(userData);
+                apiService.setAuthToken(token);
+                localStorage.setItem('user', JSON.stringify(userData));
+                localStorage.setItem('authToken', token);
+                resolve({ success: true, user: userData });
+              } else resolve({ success: false, error: 'Google signup failed' });
+            } catch (error) { resolve({ success: false, error: error.message }); }
           },
         });
-        client.requestAccessToken();
+        google.accounts.id.prompt();
       });
-    } catch (error) {
-      return { success: false, error: error.message };
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { return { success: false, error: error.message }; }
+    finally { setLoading(false); }
   };
 
   const value = {

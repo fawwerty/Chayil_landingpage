@@ -57,9 +57,9 @@ export default function FAQ() {
         transition={{ duration: 0.7 }}
         className="relative text-center max-w-6xl mx-auto px-4 py-12 min-h-screen"
       >
-        <div className="max-w-4xl mx-auto mb-8 rounded-lg p-6 bg-white">
-          <h1 className="text-4xl font-bold mb-4 text-gray-900">Frequently Asked Questions</h1>
-          <p className="mb-0 text-gray-700">
+        <div className="max-w-4xl mx-auto mb-8 rounded-lg p-6 bg-gray-900 text-white border border-teal-500/20">
+          <h1 className="text-4xl font-bold mb-4 text-white">Frequently Asked Questions</h1>
+          <p className="text-gray-300 mb-0">
             Find answers to common questions about our services and approach.
           </p>
         </div>
@@ -68,7 +68,7 @@ export default function FAQ() {
             <motion.div key={i} className="bg-gray-900 text-gray-300 p-4 rounded-lg shadow-lg border border-teal-500/20">
               <button
                 onClick={() => toggleFAQ(i)}
-                className="w-full text-left font-semibold text-lg flex justify-between items-center text-teal-400 hover:text-cyan-300 transition"
+                className={`w-full text-left font-semibold text-lg flex justify-between items-center transition ${isDark ? 'text-cyan-300 hover:text-cyan-200' : 'text-teal-400 hover:text-cyan-300'}`}
               >
                 {faq.question}
                 <span className="text-2xl text-cyan-300">{openIndex === i ? '-' : '+'}</span>

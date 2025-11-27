@@ -45,20 +45,13 @@ export default function Home() {
       style={{ backgroundImage: `url('${bgImage}')` }}
     >
       <div className="text-center max-w-6xl mx-auto px-4 py-12 min-h-screen">
-        <h1 className="text-2xl md:text-4xl font-bold mb-4 text-cyan-300">
+        <h1 className="text-xl md:text-3xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 drop-shadow-lg">
           Chayil SecureX - Africa&apos;s Trusted Partner in GRC & Cybersecurity
         </h1>
-        <p className="text-white mb-6 max-w-4xl mx-auto px-2">
+        <p className="text-white font-semibold mb-6 max-w-4xl mx-auto px-2">
           Chayil SecureX is a Governance, Risk & Compliance (GRC) and Cybersecurity Advisory firm headquartered at the Accra Digital Centre, Ghana. Positioned at the intersection of global security standards and Africa&apos;s emerging digital economy, we specialize in enabling governments, enterprises, and SMEs to build digital trust, comply with international and local regulations, and strengthen cyber resilience.
         </p>
-        <div className="flex justify-center mb-8">
-          <Link
-            to="/signup"
-            className="bg-teal-500 text-black px-6 py-3 rounded-lg hover:bg-teal-400 transition font-semibold"
-          >
-            Get Started
-          </Link>
-        </div>
+        {/* Get Started removed - no public signup/login links */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 px-2">
           {homeCards.map((card, index) => (
             <Link
