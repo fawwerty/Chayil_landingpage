@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTheme } from '../context/ThemeContext'
+import { useParams, Link } from 'react-router-dom'
 
 const services = [
   {
@@ -51,6 +52,17 @@ export default function Services() {
   const [selectedService, setSelectedService] = useState(null)
   const [showAppointmentForm, setShowAppointmentForm] = useState(false)
   const { isDark } = useTheme()
+  const { id } = useParams()
+
+  useEffect(() => {
+    if (id) {
+      const found = services.find((s) => s.id === id)
+      if (found) {
+        setSelectedService(found)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    }
+  }, [id])
 
   const handleServiceClick = (service) => {
     if (selectedService && selectedService.id === service.id) {
@@ -152,11 +164,12 @@ export default function Services() {
             <motion.div
               key={i}
               whileHover={{ y: -6 }}
-              onClick={() => handleServiceClick(service)}
               className="bg-gray-900 text-gray-300 p-6 rounded-lg shadow-lg border border-teal-500/20 cursor-pointer hover:border-teal-400/60 hover:shadow-teal-500/20 transition"
             >
-              <h3 className="font-semibold text-lg mb-2 text-teal-400">{service.title}</h3>
-              <p className="text-gray-400 text-sm">{service.desc}</p>
+              <Link to={`/services/${service.id}`} onClick={() => handleServiceClick(service)}>
+                <h3 className="font-semibold text-lg mb-2 text-teal-400">{service.title}</h3>
+                <p className="text-gray-400 text-sm">{service.desc}</p>
+              </Link>
             </motion.div>
           ))}
         </div>

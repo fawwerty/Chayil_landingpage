@@ -1,9 +1,11 @@
 import SocialIcons from "./SocialIcons";
 import { useTheme } from "../context/ThemeContext";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
 export default function Footer() {
   const { isDark } = useTheme();
+  const [email, setEmail] = useState("")
 
   return (
     <footer
@@ -130,22 +132,40 @@ export default function Footer() {
             </p>
 
             <div className="relative">
-              <input
-                type="email"
-                placeholder="Enter your email address"
-                className={`w-full border rounded-md py-2 px-4 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors ${
-                  isDark
-                    ? "bg-gray-800 border-gray-600 placeholder-gray-400 text-white"
-                    : "bg-white border-gray-300 placeholder-gray-500 text-gray-800"
-                }`}
-              />
-              <button
-                type="submit"
-                aria-label="Subscribe to newsletter"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-teal-500 text-lg cursor-pointer transition-colors hover:text-teal-400"
-              >
-                ✉
-              </button>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  className={`w-full border rounded-md py-2 px-4 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors ${
+                    isDark
+                      ? "bg-gray-800 border-gray-600 placeholder-gray-400 text-white"
+                      : "bg-white border-gray-300 placeholder-gray-500 text-gray-800"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                      alert('Please enter a valid email address')
+                      return
+                    }
+                    try {
+                      const list = JSON.parse(localStorage.getItem('newsletter') || '[]')
+                      if (!list.includes(email)) list.push(email)
+                      localStorage.setItem('newsletter', JSON.stringify(list))
+                      setEmail('')
+                      alert('Thanks — you are subscribed!')
+                    } catch (e) {
+                      console.warn(e)
+                      alert('Subscribed (local).')
+                    }
+                  }}
+                  aria-label="Subscribe to newsletter"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-teal-500 text-lg cursor-pointer transition-colors hover:text-teal-400"
+                >
+                  ✉
+                </button>
             </div>
           </div>
         </div>
