@@ -1,18 +1,20 @@
 <!doctype html>
-<!-- Redirect root to the compiled site in /docs/ to ensure GitHub Pages serves built assets -->
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chayil SecureX</title>
     <link rel="icon" href="./images/logo.jpg" />
-    <meta http-equiv="refresh" content="0; url=/Chayil_landingpage/docs/" />
-    <script>
-      // Fallback redirect for browsers that don't honor meta refresh
-      window.location.replace('/Chayil_landingpage/docs/')
-    </script>
+    <script id="google-api-script" src="https://accounts.google.com/gsi/client" async defer onload="window.googleApiLoaded=true" onerror="window.googleApiLoadFailed=true"></script>
+    <script type="module" crossorigin src="/Chayil_landingpage/assets/index-DDF6_6eX.js"></script>
+    <link rel="stylesheet" crossorigin href="/Chayil_landingpage/assets/index-BNVghf9K.css">
   </head>
-  <body>
-    <p>If you are not redirected automatically, <a href="/Chayil_landingpage/docs/">click here to open the site</a>.</p>
+  <body class="bg-white dark:bg-gray-900">
+    <div id="root"></div>
+    <noscript>
+      <div style="color: white; text-align: center; padding: 20px;">
+        JavaScript is required to run this application.
+      </div>
+    </noscript>
   </body>
 </html>
