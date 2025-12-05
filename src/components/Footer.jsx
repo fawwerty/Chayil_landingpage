@@ -6,8 +6,37 @@ import { useState } from "react";
 export default function Footer() {
   const { isDark } = useTheme();
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("idle");
+  const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [message, setMessage] = useState("");
+
+  const handleSubscribe = () => {
+    const trimmed = email.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setStatus("error");
+      setMessage("Please enter a valid email address.");
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+
+    try {
+      const list = JSON.parse(localStorage.getItem("newsletter") || "[]");
+      if (!list.includes(trimmed)) list.push(trimmed);
+      localStorage.setItem("newsletter", JSON.stringify(list));
+
+      setEmail("");
+      setStatus("success");
+      setMessage("Subscribed successfully!");
+      setTimeout(() => {
+        setStatus("idle");
+        setMessage("");
+      }, 2500);
+    } catch (e) {
+      setStatus("error");
+      setMessage("An error occurred. Try again.");
+    }
+  };
 
   return (
     <footer
@@ -96,52 +125,65 @@ export default function Footer() {
               Newsletter
             </h3>
             <p className="text-sm opacity-80 mb-3">
-              Join our mailing list for updates.
+              Join our mailing list for updates, insights, and security tips.
             </p>
 
-            {/* PERFECTLY ALIGNED INPUT + BUTTON */}
-            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-1 border dark:border-gray-700">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="flex-1 bg-transparent text-sm px-3 py-2 outline-none placeholder-gray-400 dark:placeholder-gray-500"
-              />
-              <button
-                onClick={() => {
-                  const trimmed = email.trim();
-                  if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-                    setStatus("error");
-                    setMessage("Invalid email");
-                    return;
-                  }
-
-                  try {
-                    const list = JSON.parse(
-                      localStorage.getItem("newsletter") || "[]"
-                    );
-                    if (!list.includes(trimmed)) list.push(trimmed);
-                    localStorage.setItem("newsletter", JSON.stringify(list));
-
-                    setEmail("");
-                    setStatus("success");
-                    setMessage("Subscribed!");
-                    setTimeout(() => {
-                      setStatus("idle");
-                      setMessage("");
-                    }, 2500);
-                  } catch (e) {
-                    setStatus("error");
-                    setMessage("An error occurred");
-                  }
-                }}
-                className="bg-teal-500 hover:bg-teal-400 text-black font-semibold text-xs px-4 py-2 rounded-full transition-all"
+            {/* FIXED + PREMIUM INPUT + BUTTON */}
+            <div className="flex md:justify-start">
+              <div
+                className={`flex items-center w-full max-w-md rounded-full px-3 py-2 border 
+                  ${isDark ? "bg-gray-900/40 border-gray-700" : "bg-white/60 border-gray-300"} 
+                  backdrop-blur-md shadow-sm`}
               >
-                Subscribe
-              </button>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  aria-label="Email for newsletter"
+                  className="flex-1 min-w-0 bg-transparent text-sm px-3 py-2 outline-none
+                             placeholder-gray-500 dark:placeholder-gray-400 text-gray-800 dark:text-gray-200"
+                />
+
+                <button
+                  onClick={handleSubscribe}
+                  disabled={status === "loading"}
+                  aria-disabled={status === "loading"}
+                  className={`ml-2 px-5 py-2 rounded-full text-xs font-semibold text-white
+                             bg-gradient-to-r from-teal-500 to-cyan-400
+                             hover:from-teal-400 hover:to-cyan-300
+                             active:scale-95 transition-all duration-200 shadow-md hover:shadow-lg
+                             flex items-center justify-center`}
+                >
+                  {status === "loading" ? (
+                    // small spinner + text while loading
+                    <svg
+                      className="animate-spin h-4 w-4 mr-2 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      ></path>
+                    </svg>
+                  ) : null}
+                  {status === "loading" ? "Subscribing..." : "Subscribe"}
+                </button>
+              </div>
             </div>
 
+            {/* STATUS MESSAGES */}
             {status === "error" && (
               <p className="text-xs text-red-400 mt-2">{message}</p>
             )}
