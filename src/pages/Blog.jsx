@@ -112,20 +112,16 @@ export default function Blog() {
             <motion.div
               key={i}
               whileHover={{ y: -5, scale: 1.02 }}
-              className={`p-6 rounded-xl shadow-lg border transition cursor-pointer ${
-                isDark
-                  ? "bg-gray-900 border-teal-500/20 hover:border-teal-400/40"
-                  : "bg-white border-gray-300 hover:border-teal-500/30"
-              }`}
+              className={`p-6 rounded-xl shadow-lg border transition cursor-pointer backdrop-blur-sm ${isDark ? 'bg-gray-900/92 border-teal-500/20 text-gray-100' : 'bg-white/95 border-gray-200/40 text-gray-900'}`}
               onClick={() => window.open(post.socialLink || "#", "_blank")}
             >
-              <h3 className="text-teal-400 font-semibold text-lg mb-2">
+              <h3 className="text-teal-400 font-semibold text-xl md:text-2xl mb-3 leading-tight">
                 {post.title}
               </h3>
-              <p className={`mb-4 ${isDark ? "text-gray-300" : "text-gray-600"}`}>
+              <p className={`mb-4 text-base leading-relaxed ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
                 {post.excerpt}
               </p>
-              <div className="text-xs text-gray-500">{post.date}</div>
+              <div className="text-sm text-gray-500">{post.date}</div>
             </motion.div>
           ))}
         </div>

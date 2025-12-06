@@ -26,7 +26,21 @@ export default function Home() {
   const [status, setStatus] = useState('idle')
   const [message, setMessage] = useState('')
 
-  const bgImage = `${import.meta.env.BASE_URL}images/background4.jpg`
+  // Resolve background image reliably both in dev (root or subpath) and production
+  const _base = import.meta.env.BASE_URL || '/'
+  let bgImage = `${_base}images/background4.jpg`
+  if (typeof window !== 'undefined') {
+    try {
+      // If the current location pathname doesn't start with the Vite base,
+      // build an absolute URL using origin + base so the image resolves correctly.
+      if (!window.location.pathname.startsWith(_base)) {
+        bgImage = `${window.location.origin}${_base}images/background4.jpg`
+      }
+    } catch (e) {
+      // fallback to the base path
+      bgImage = `${_base}images/background4.jpg`
+    }
+  }
 
   // Newsletter submit
   const handleNewsletter = () => {

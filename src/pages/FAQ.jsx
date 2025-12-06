@@ -63,16 +63,17 @@ export default function FAQ() {
         {/* FAQ List */}
         <div className="max-w-3xl mx-auto space-y-4">
           {faqs.map((faq, i) => (
+
             <motion.div
               key={i}
-              className="bg-gray-900 text-gray-300 p-4 rounded-lg shadow-lg border border-teal-500/20"
+              className={`${isDark ? 'bg-gray-900 text-gray-100 border-teal-500/20' : 'bg-white text-gray-900 border-gray-200'} p-4 rounded-lg shadow-lg border transition`}
             >
               <button
                 onClick={() => toggleFAQ(i)}
-                className="w-full text-left font-semibold text-lg flex justify-between items-center transition text-teal-400 hover:text-cyan-300"
+                className={`w-full text-left font-bold flex justify-between items-center transition ${isDark ? 'text-white' : 'text-gray-900'}`}
               >
-                {faq.question}
-                <span className="text-2xl text-cyan-300">{openIndex === i ? '-' : '+'}</span>
+                <span className="text-lg md:text-2xl leading-tight">{faq.question}</span>
+                <span className="text-2xl text-teal-400 font-semibold">{openIndex === i ? '−' : '+'}</span>
               </button>
 
               {openIndex === i && (
@@ -80,9 +81,9 @@ export default function FAQ() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-4 text-left text-gray-400 leading-relaxed"
+                  className={`mt-4 text-left leading-relaxed ${isDark ? 'text-gray-200' : 'text-gray-700'} text-base md:text-lg`}
                 >
-                  {faq.answer}
+                  <div className="prose prose-lg max-w-none">{faq.answer}</div>
                   <div className="mt-4 pt-4 border-t border-teal-500/20">
                     <p className="text-sm text-gray-500 mb-2">Need more help?</p>
                     <Link

@@ -99,47 +99,56 @@ export default function Footer() {
               Join our mailing list for updates.
             </p>
 
-            {/* PERFECTLY ALIGNED INPUT + BUTTON */}
-            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-1 border dark:border-gray-700">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="flex-1 bg-transparent text-sm px-3 py-2 outline-none placeholder-gray-400 dark:placeholder-gray-500"
-              />
-              <button
-                onClick={() => {
-                  const trimmed = email.trim();
-                  if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-                    setStatus("error");
-                    setMessage("Invalid email");
-                    return;
-                  }
+            {/* FIXED + MODERNIZED INPUT + BUTTON */}
+            <div className="flex md:justify-start">
+              <div className="flex items-center w-full max-w-md bg-gray-100 dark:bg-gray-800 
+                              backdrop-blur-md rounded-full px-3 py-2 border 
+                              border-gray-300 dark:border-gray-700 shadow-sm">
+                
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  className="flex-1 min-w-0 bg-transparent text-sm px-3 py-2 outline-none 
+                             placeholder-gray-500 dark:placeholder-gray-400 
+                             text-gray-800 dark:text-gray-200"
+                />
 
-                  try {
-                    const list = JSON.parse(
-                      localStorage.getItem("newsletter") || "[]"
-                    );
-                    if (!list.includes(trimmed)) list.push(trimmed);
-                    localStorage.setItem("newsletter", JSON.stringify(list));
+                <button
+                  onClick={() => {
+                    const trimmed = email.trim();
+                    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+                      setStatus("error");
+                      setMessage("Invalid email");
+                      return;
+                    }
 
-                    setEmail("");
-                    setStatus("success");
-                    setMessage("Subscribed!");
-                    setTimeout(() => {
-                      setStatus("idle");
-                      setMessage("");
-                    }, 2500);
-                  } catch (e) {
-                    setStatus("error");
-                    setMessage("An error occurred");
-                  }
-                }}
-                className="bg-teal-500 hover:bg-teal-400 text-black font-semibold text-xs px-4 py-2 rounded-full transition-all"
-              >
-                Subscribe
-              </button>
+                    try {
+                      const list = JSON.parse(localStorage.getItem("newsletter") || "[]");
+                      if (!list.includes(trimmed)) list.push(trimmed);
+                      localStorage.setItem("newsletter", JSON.stringify(list));
+
+                      setEmail("");
+                      setStatus("success");
+                      setMessage("Subscribed!");
+                      setTimeout(() => {
+                        setStatus("idle");
+                        setMessage("");
+                      }, 2500);
+                    } catch (e) {
+                      setStatus("error");
+                      setMessage("An error occurred");
+                    }
+                  }}
+                  className="ml-2 px-5 py-2 rounded-full text-xs font-semibold text-white
+                             bg-gradient-to-r from-teal-500 to-cyan-500 
+                             hover:from-teal-400 hover:to-cyan-400 
+                             active:scale-95 transition-all duration-200 shadow-md hover:shadow-lg"
+                >
+                  Subscribe
+                </button>
+              </div>
             </div>
 
             {status === "error" && (

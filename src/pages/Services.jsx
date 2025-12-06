@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useParams } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Services() {
   const { id } = useParams();
   const [selectedService, setSelectedService] = useState(null);
   const [showAppointmentForm, setShowAppointmentForm] = useState(false);
+  const { isDark } = useTheme();
 
   const services = [
     {
@@ -62,6 +64,67 @@ export default function Services() {
     setShowAppointmentForm(true);
   };
 
+  // Appointment form state
+  const [apptName, setApptName] = useState("");
+  const [apptEmail, setApptEmail] = useState("");
+  const [apptPhone, setApptPhone] = useState("");
+  const [apptDate, setApptDate] = useState("");
+  const [apptTime, setApptTime] = useState("");
+  const [apptNotes, setApptNotes] = useState("");
+  const [apptStatus, setApptStatus] = useState("idle");
+  const [apptMessage, setApptMessage] = useState("");
+
+  const getAppointmentsEndpoint = () => {
+    // In development, backend proxy runs on port 3001 (backend_proxy/server.js)
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      return 'http://localhost:3001/api/appointments';
+    }
+    // In production (Vercel), the serverless function lives at /api/appointments
+    return '/api/appointments';
+  };
+
+  const handleApptSubmit = async (e) => {
+    e.preventDefault();
+    setApptStatus('loading');
+
+    try {
+      const payload = {
+        name: apptName,
+        email: apptEmail,
+        phone: apptPhone,
+        date: apptDate,
+        time: apptTime,
+        notes: apptNotes,
+        service: selectedService?.title || ''
+      };
+
+      const res = await fetch(getAppointmentsEndpoint(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+
+      setApptStatus('success');
+      setApptMessage('Appointment requested — we will confirm shortly.');
+      // clear
+      setApptName(''); setApptEmail(''); setApptPhone(''); setApptDate(''); setApptTime(''); setApptNotes('');
+
+      setTimeout(() => {
+        setShowAppointmentForm(false);
+        setSelectedService(null);
+        setApptStatus('idle');
+        setApptMessage('');
+      }, 2200);
+    } catch (err) {
+      console.error('Appointment submission failed:', err);
+      setApptStatus('error');
+      setApptMessage(err.message || 'Submission failed');
+    }
+  };
+
   return (
     <div className="relative min-h-screen">
       {/* Background Image */}
@@ -81,25 +144,25 @@ export default function Services() {
         <h1 className="text-4xl font-bold mb-4 text-teal-400">Our Services</h1>
 
         {/* Intro Box */}
-        <div className="bg-gray-900/90 p-6 rounded-lg shadow-lg border border-teal-500/20 max-w-4xl mx-auto mb-8">
-          <p className="text-gray-300 text-base">
+        <div className={`p-6 rounded-lg shadow-lg border max-w-4xl mx-auto mb-8 transition backdrop-blur-sm ${isDark ? 'bg-gray-900/92 border-teal-500/20 text-gray-100' : 'bg-white/95 border-teal-500/10 text-gray-900'}`}>
+          <p className="text-base leading-relaxed md:text-lg">
             Comprehensive GRC and Cybersecurity solutions tailored for African organizations.
           </p>
         </div>
 
         {/* Selected Service Details */}
-        {selectedService && !showAppointmentForm && (
+          {selectedService && !showAppointmentForm && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gray-900/90 p-8 rounded-lg mb-8 border border-teal-500/30 shadow-lg"
+            className={`p-8 rounded-lg mb-8 border shadow-lg transition backdrop-blur-md ${isDark ? 'bg-gray-900/94 border-teal-500/30 text-gray-100' : 'bg-white/95 border-teal-500/20 text-gray-900'}`}
           >
             <h2 className="text-2xl font-bold mb-4 text-teal-400">{selectedService.title}</h2>
-            <p className="text-gray-300 mb-6">{selectedService.details}</p>
+            <p className="mb-6 leading-relaxed text-base md:text-lg">{selectedService.details}</p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               {selectedService.features.map((feature, i) => (
-                <div key={i} className="bg-gray-800/90 p-3 rounded text-cyan-300 border border-teal-500/20">
-                  {feature}
+                <div key={i} className={`p-3 rounded text-cyan-300 border transition ${isDark ? 'bg-gray-800/80 border-teal-500/10 text-gray-100' : 'bg-white/90 border-teal-500/10 text-gray-800'}`}>
+                  <div className="text-sm md:text-base leading-snug">{feature}</div>
                 </div>
               ))}
             </div>
@@ -125,16 +188,16 @@ export default function Services() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gray-900/90 p-8 rounded-lg mb-8 border border-teal-500/30 shadow-lg max-w-md mx-auto"
+            className={`p-8 rounded-lg mb-8 border shadow-lg max-w-md mx-auto transition backdrop-blur-md ${isDark ? 'bg-gray-900/94 border-teal-500/30 text-gray-100' : 'bg-white/95 border-teal-500/20 text-gray-900'}`}
           >
             <h2 className="text-2xl font-bold mb-4 text-teal-400">Book Appointment</h2>
-            <p className="text-gray-300 mb-4">Service: {selectedService.title}</p>
-            <form onSubmit={(e) => { e.preventDefault(); alert('Appointment booked!'); setShowAppointmentForm(false); setSelectedService(null); }} className="space-y-4">
-              <input type="text" placeholder="Full Name" className="w-full bg-gray-800/90 border border-teal-500/20 p-2 rounded text-gray-300 placeholder-gray-500" required />
-              <input type="email" placeholder="Email" className="w-full bg-gray-800/90 border border-teal-500/20 p-2 rounded text-gray-300 placeholder-gray-500" required />
-              <input type="tel" placeholder="Phone" className="w-full bg-gray-800/90 border border-teal-500/20 p-2 rounded text-gray-300 placeholder-gray-500" required />
-              <input type="date" className="w-full bg-gray-800/90 border border-teal-500/20 p-2 rounded text-gray-300" required />
-              <select className="w-full bg-gray-800/90 border border-teal-500/20 p-2 rounded text-gray-300" required>
+            <p className={`mb-4 leading-relaxed ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Service: {selectedService?.title}</p>
+            <form onSubmit={handleApptSubmit} className="space-y-4">
+              <input value={apptName} onChange={e=>setApptName(e.target.value)} type="text" placeholder="Full Name" className={`w-full p-3 rounded border ${isDark ? 'bg-gray-800/80 border-teal-500/10 text-gray-100 placeholder-gray-400' : 'bg-white/95 border-gray-200 text-gray-900 placeholder-gray-500'}`} required />
+              <input value={apptEmail} onChange={e=>setApptEmail(e.target.value)} type="email" placeholder="Email" className={`w-full p-3 rounded border ${isDark ? 'bg-gray-800/80 border-teal-500/10 text-gray-100 placeholder-gray-400' : 'bg-white/95 border-gray-200 text-gray-900 placeholder-gray-500'}`} required />
+              <input value={apptPhone} onChange={e=>setApptPhone(e.target.value)} type="tel" placeholder="Phone" className={`w-full p-3 rounded border ${isDark ? 'bg-gray-800/80 border-teal-500/10 text-gray-100 placeholder-gray-400' : 'bg-white/95 border-gray-200 text-gray-900 placeholder-gray-500'}`} required />
+              <input value={apptDate} onChange={e=>setApptDate(e.target.value)} type="date" className={`w-full p-3 rounded border ${isDark ? 'bg-gray-800/80 border-teal-500/10 text-gray-100' : 'bg-white/95 border-gray-200 text-gray-900'}`} required />
+              <select value={apptTime} onChange={e=>setApptTime(e.target.value)} className={`w-full p-3 rounded border ${isDark ? 'bg-gray-800/80 border-teal-500/10 text-gray-100' : 'bg-white/95 border-gray-200 text-gray-900'}`} required>
                 <option value="">Select Time</option>
                 <option value="9:00">9:00 AM</option>
                 <option value="10:00">10:00 AM</option>
@@ -143,9 +206,13 @@ export default function Services() {
                 <option value="15:00">3:00 PM</option>
                 <option value="16:00">4:00 PM</option>
               </select>
-              <textarea placeholder="Additional Notes" className="w-full bg-gray-800/90 border border-teal-500/20 p-2 rounded text-gray-300 placeholder-gray-500" rows="3"></textarea>
+              <textarea value={apptNotes} onChange={e=>setApptNotes(e.target.value)} placeholder="Additional Notes" className={`w-full p-3 rounded border ${isDark ? 'bg-gray-800/80 border-teal-500/10 text-gray-100 placeholder-gray-400' : 'bg-white/95 border-gray-200 text-gray-900 placeholder-gray-500'}`} rows="3"></textarea>
+
+              {apptStatus === 'error' && <p className="text-xs text-red-400">{apptMessage}</p>}
+              {apptStatus === 'success' && <p className="text-xs text-green-400">{apptMessage}</p>}
+
               <div className="flex gap-4">
-                <button type="submit" className="flex-1 bg-teal-500 text-black py-2 rounded hover:bg-teal-400 transition font-semibold">Book Appointment</button>
+                <button type="submit" className="flex-1 bg-teal-500 text-black py-2 rounded hover:bg-teal-400 transition font-semibold">{apptStatus === 'loading' ? 'Sending...' : 'Book Appointment'}</button>
                 <button
                   type="button"
                   onClick={() => setShowAppointmentForm(false)}
@@ -164,11 +231,11 @@ export default function Services() {
             <motion.div
               key={i}
               whileHover={{ y: -6 }}
-              className="bg-gray-900/90 text-gray-300 p-6 rounded-lg shadow-lg border border-teal-500/20 cursor-pointer hover:border-teal-400/60 hover:shadow-teal-500/20 transition"
+              className={`p-6 rounded-lg shadow-lg border cursor-pointer transition hover:-translate-y-1 backdrop-blur-sm ${isDark ? 'bg-gray-900/98 border-teal-500/20 text-gray-100 hover:border-teal-400/40 hover:shadow-teal-500/20' : 'bg-white border-teal-500/10 text-gray-900 hover:border-teal-500/30'}`}
             >
               <Link to={`/services/${service.id}`} onClick={() => handleServiceClick(service)}>
-                <h3 className="font-semibold text-lg mb-2 text-teal-400">{service.title}</h3>
-                <p className="text-gray-400 text-sm">{service.desc}</p>
+                <h3 className={`font-bold mb-2 ${isDark ? 'text-white text-xl' : 'text-teal-600 text-xl'}`}>{service.title}</h3>
+                <p className={`${isDark ? 'text-gray-200' : 'text-gray-700'} text-base leading-relaxed`}>{service.desc}</p>
               </Link>
             </motion.div>
           ))}
