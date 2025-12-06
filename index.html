@@ -1,22 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chayil SecureX</title>
     <link rel="icon" href="./images/logo.jpg" />
-    <meta http-equiv="refresh" content="0; url=./docs/index.html" />
-    <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; background:#111; color:#fff; display:flex; align-items:center; justify-content:center; height:100vh; margin:0 }
-      a { color: #8ab4ff }
-      .box { text-align:center }
-    </style>
+    <script id="google-api-script" src="https://accounts.google.com/gsi/client" async defer onload="window.googleApiLoaded=true" onerror="window.googleApiLoadFailed=true"></script>
   </head>
-  <body>
-    <div class="box">
-      <h1>Chayil SecureX</h1>
-      <p>Redirecting to the production site…</p>
-      <p>If your browser does not redirect, <a href="./docs/index.html">click here</a>.</p>
-    </div>
+  <body class="bg-white dark:bg-gray-900">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <noscript>
+      <div style="color: white; text-align: center; padding: 20px;">
+        JavaScript is required to run this application.
+      </div>
+    </noscript>
   </body>
 </html>
